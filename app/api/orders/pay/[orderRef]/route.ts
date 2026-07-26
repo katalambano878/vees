@@ -38,11 +38,13 @@ export async function GET(
     const token = url.searchParams.get('token') || '';
     const authToken = req.headers.get('authorization')?.replace('Bearer ', '');
 
-        const { data: order, error: orderError } = await supabaseAdmin
+    const { data: orderData, error: orderError } = await supabaseAdmin
       .from('orders')
       .select('id, order_number, user_id, email, payment_status, subtotal, tax_total, shipping_total, discount_total, total, shipping_address, metadata')
       .or(`id.eq.${orderRef},order_number.eq.${orderRef}`)
-      .maybeSingle<OrderRow>();
+      .maybeSingle();
+
+    const order = orderData as OrderRow | null;
 
     if (orderError || !order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
