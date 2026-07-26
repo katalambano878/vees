@@ -1,3 +1,5 @@
+import { money } from '@/lib/format-money';
+
 interface OrderItem {
   id: string;
   name: string;

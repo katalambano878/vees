@@ -144,7 +144,7 @@ export default function CustomerDetailsPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                                        GH₵{(order.total ||money(0))}
+                                        GH₵{money(order.total)}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <Link href={`/admin/orders/${order.id}`} className="text-gray-400 hover:text-gray-600">

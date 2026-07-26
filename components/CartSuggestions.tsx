@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import Link from 'next/link';
+import { money } from '@/lib/format-money';
 
 interface Product {
   id: string;
