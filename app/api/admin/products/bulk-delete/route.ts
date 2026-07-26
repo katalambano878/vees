@@ -1,24 +1,21 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 async function verifyAdmin(request: Request) {
   const authToken = request.headers.get('authorization')?.replace('Bearer ', '');
   if (!authToken) return null;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  const { data: { user }, error } = await supabase.auth.getUser(authToken);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(authToken);
   if (error || !user) return null;
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+  const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
   if (!profile || (profile.role !== 'admin' && profile.role !== 'staff')) return null;
-  return supabase;
+  return supabaseAdmin;
 }
 
 export async function POST(request: Request) {
   try {
-    const supabase = await verifyAdmin(request);
-    if (!supabase) {
+    const supabaseAdminClient = await verifyAdmin(request);
+    if (!supabaseAdminClient) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -32,12 +29,12 @@ export async function POST(request: Request) {
     const errors: string[] = [];
 
     for (const id of ids) {
-      await supabase.from('wishlist_items').delete().eq('product_id', id);
-      await supabase.from('cart_items').delete().eq('product_id', id);
-      await supabase.from('reviews').delete().eq('product_id', id);
-      await supabase.from('product_images').delete().eq('product_id', id);
-      await supabase.from('product_variants').delete().eq('product_id', id);
-      const { error } = await supabase.from('products').delete().eq('id', id);
+      await supabaseAdmin.from('wishlist_items').delete().eq('product_id', id);
+      await supabaseAdmin.from('cart_items').delete().eq('product_id', id);
+      await supabaseAdmin.from('reviews').delete().eq('product_id', id);
+      await supabaseAdmin.from('product_images').delete().eq('product_id', id);
+      await supabaseAdmin.from('product_variants').delete().eq('product_id', id);
+      const { error } = await supabaseAdmin.from('products').delete().eq('id', id);
       if (error) {
         errors.push(`Product ${id}: ${error.message}`);
       } else {

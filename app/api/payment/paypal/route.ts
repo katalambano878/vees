@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { money } from '@/lib/format-money';
 
 /**
  * Create a PayPal order and return the approval URL for redirect.
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || requestUrl.origin).replace(/\/+$/, '');
 
     const currency = (process.env.PAYPAL_CURRENCY || 'USD').toUpperCase();
-    const value = Number(amount).toFixed(2);
+    const value =money(Number(amount));
     if (Number(value) < 0.01) {
       return NextResponse.json({ success: false, message: 'Amount too small' }, { status: 400 });
     }

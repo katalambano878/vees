@@ -1,5 +1,6 @@
 'use client';
 
+import { money, asNumber } from '@/lib/format-money';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useWishlist } from '@/context/WishlistContext';
@@ -116,11 +117,11 @@ export default function WishlistPage() {
                       </p>
                       <div className="mt-2 flex items-baseline gap-2">
                         <span className="text-lg font-bold text-gray-900">
-                          GH₵{item.price.toFixed(2)}
+                          GH₵{money(item.price)}
                         </span>
                         {item.originalPrice && item.originalPrice > item.price && (
                           <span className="text-sm text-gray-500 line-through">
-                            GH₵{item.originalPrice.toFixed(2)}
+                            GH₵{money(item.originalPrice)}
                           </span>
                         )}
                       </div>

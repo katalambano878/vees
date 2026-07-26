@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 type OrderRow = {
   id: string;
@@ -40,8 +38,7 @@ export async function GET(
     const token = url.searchParams.get('token') || '';
     const authToken = req.headers.get('authorization')?.replace('Bearer ', '');
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { data: order, error: orderError } = await supabase
+        const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .select('id, order_number, user_id, email, payment_status, subtotal, tax_total, shipping_total, discount_total, total, shipping_address, metadata')
       .or(`id.eq.${orderRef},order_number.eq.${orderRef}`)
@@ -61,7 +58,7 @@ export async function GET(
 
     // Authenticated owner fallback
     if (!authorized && authToken) {
-      const { data: userData } = await supabase.auth.getUser(authToken);
+      const { data: userData } = await supabaseAdmin.auth.getUser(authToken);
       if (userData?.user?.id && order.user_id === userData.user.id) {
         authorized = true;
       }

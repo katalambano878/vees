@@ -1,18 +1,15 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 async function verifyAdmin(request: Request) {
   const authToken = request.headers.get('authorization')?.replace('Bearer ', '');
   if (!authToken) return null;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  const { data: { user }, error } = await supabase.auth.getUser(authToken);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(authToken);
   if (error || !user) return null;
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+  const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
   if (!profile || (profile.role !== 'admin' && profile.role !== 'staff')) return null;
-  return supabase;
+  return supabaseAdmin;
 }
 
 export async function DELETE(
@@ -20,8 +17,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await verifyAdmin(request);
-    if (!supabase) {
+    const supabaseAdminClient = await verifyAdmin(request);
+    if (!supabaseAdminClient) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -31,7 +28,7 @@ export async function DELETE(
     }
 
     // Check for child categories
-    const { data: children } = await supabase
+    const { data: children } = await supabaseAdmin
       .from('categories')
       .select('id')
       .eq('parent_id', id)
@@ -45,7 +42,7 @@ export async function DELETE(
     }
 
     // Check for products in this category
-    const { data: products } = await supabase
+    const { data: products } = await supabaseAdmin
       .from('products')
       .select('id')
       .eq('category_id', id)
@@ -58,7 +55,7 @@ export async function DELETE(
       );
     }
 
-    const { error } = await supabase.from('categories').delete().eq('id', id);
+    const { error } = await supabaseAdmin.from('categories').delete().eq('id', id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
